@@ -50,6 +50,7 @@ namespace Dtmcli.Tests
                .EnableWaitResult()
                .SetRetryInterval(10)
                .SetTimeoutToFail(100)
+               .SetRequestTimeout(30)
                .SetDelay(10)
                .SetBranchHeaders(new Dictionary<string, string>
                 {
@@ -192,6 +193,43 @@ namespace Dtmcli.Tests
             dtmClient.Verify(x => x.TransRequestBranch(It.IsAny<TransBase>(), It.IsAny<HttpMethod>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
         
+        [Fact]
+        public async void SetRequestTimeoutTest()
+        {
+            var fakeFactory = new Mock<IHttpClientFactory>();
+
+            var mockHttpMessageHandler = new MsgMockHttpMessageHandler();
+            var httpClient = new HttpClient(mockHttpMessageHandler);
+            fakeFactory.Setup(x=>x.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+            var dtmOptions = new DtmOptions { DtmUrl = "http://localhost:36789" };
+            var dtmClient = new DtmClient(fakeFactory.Object, Microsoft.Extensions.Options.Options.Create(dtmOptions));
+
+            var gid = "TestMsgNormal";
+            var msg = new Msg(dtmClient, _branchBarrierFactory, gid);
+
+            var req = new { Amount = 30 };
+
+            msg.Add(busi + "/TransOut", req)
+                .Add(busi + "/TransIn", req)
+                .AddTopic("test-topic", req)
+                .EnableWaitResult()
+                .SetRetryInterval(10)
+                .SetTimeoutToFail(100)
+                .SetRequestTimeout(30)
+                .SetDelay(10)
+                .SetBranchHeaders(new Dictionary<string, string>
+                {
+                    { "bh1", "123" },
+                    { "bh2", "456" },
+                });
+
+            await msg.Prepare(busi + "/query");
+            await msg.Submit();
+
+            Assert.True(true);
+        }
+        
         public class MsgMockHttpMessageHandler : DelegatingHandler
         {
             public MsgMockHttpMessageHandler()
@@ -209,6 +247,7 @@ namespace Dtmcli.Tests
                 Assert.True(transBase.WaitResult);
                 Assert.Equal(10, transBase.RetryInterval);
                 Assert.Equal(100, transBase.TimeoutToFail);
+                Assert.Equal(30, transBase.RequestTimeout);
                 Assert.Contains("bh1", transBase.BranchHeaders.Keys);
                 Assert.Contains("bh2", transBase.BranchHeaders.Keys);
                 Assert.Equal(3, transBase.Payloads.Count);

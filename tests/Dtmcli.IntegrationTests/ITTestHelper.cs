@@ -24,6 +24,20 @@ public class ITTestHelper
 
         return string.Empty;
     }
+    
+    public static async Task<QueryResult> GetTran(string gid)
+    {
+        var resp = await _client.GetAsync($"{DTMHttpUrl}/api/dtmsvr/query?gid={gid}").ConfigureAwait(false);
+
+        if (resp.IsSuccessStatusCode)
+        {
+            var content = await resp.Content.ReadAsStringAsync();
+            var res = System.Text.Json.JsonSerializer.Deserialize<QueryResult>(content);
+            return res;
+        }
+
+        return null;
+    }
 
     public class QueryResult
     {
@@ -35,6 +49,12 @@ public class ITTestHelper
         {
             [System.Text.Json.Serialization.JsonPropertyName("status")]
             public string Status { get; set; }
+
+            [System.Text.Json.Serialization.JsonPropertyName("request_timeout")]
+            public long RequestTimeout { get; set; }
+            
+            [System.Text.Json.Serialization.JsonPropertyName("timeout_to_fail")]
+            public long TimeoutToFail { get; set; }
         }
 
 
