@@ -130,6 +130,17 @@ namespace Dtmcli
             this._transBase.RetryInterval = retryInterval;
             return this;
         }
+        
+        /// <summary>
+        /// Set timeout for sub branch, unit is second
+        /// </summary>
+        /// <param name="requestTimeout">timeout to fail</param>
+        /// <returns></returns>
+        public Msg SetRequestTimeout(long requestTimeout)
+        {
+            this._transBase.RequestTimeout = requestTimeout;
+            return this;
+        }
 
         /// <summary>
         /// Set branch headers for trans

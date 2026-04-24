@@ -91,4 +91,97 @@ public class MsgHttpTest
         status = await ITTestHelper.GetTranStatus(gid);
         Assert.Equal("succeed", status);
     }
+
+    [Fact]
+    public async Task SetRequestTimeoutTest_default()
+    {
+        var provider = ITTestHelper.AddDtmHttp();
+        var transFactory = provider.GetRequiredService<Dtmcli.IDtmTransFactory>();
+
+        var gid = "msgTestGid" + Guid.NewGuid().ToString();
+        var msg = transFactory.NewMsg(gid);
+        // msg.SetRequestTimeout(30);
+        msg.EnableWaitResult();
+        var req = ITTestHelper.GenBusiReq(false, false);
+        var busiUrl = ITTestHelper.BuisHttpUrl;
+        msg.Add(busiUrl + "/busi.Busi/TransOut", req)
+            .Add(busiUrl + "/busi.Busi/TransIn", req);
+
+        await msg.Prepare(busiUrl + "/busi.Busi/QueryPrepared_404");
+        await msg.Submit();
+
+        var trans = await ITTestHelper.GetTran(gid);
+        Assert.Equal("succeed", trans.Transaction.Status);
+        Assert.Equal(0, trans.Transaction.RequestTimeout);
+    }
+
+    [Fact]
+    public async Task SetRequestTimeoutTest_30s()
+    {
+        var provider = ITTestHelper.AddDtmHttp();
+        var transFactory = provider.GetRequiredService<Dtmcli.IDtmTransFactory>();
+
+        var gid = "msgTestGid" + Guid.NewGuid().ToString();
+        var msg = transFactory.NewMsg(gid);
+        msg.SetRequestTimeout(30);
+        msg.EnableWaitResult();
+        var req = ITTestHelper.GenBusiReq(false, false);
+        var busiUrl = ITTestHelper.BuisHttpUrl;
+        msg.Add(busiUrl + "/busi.Busi/TransOut", req)
+            .Add(busiUrl + "/busi.Busi/TransIn", req);
+
+        await msg.Prepare(busiUrl + "/busi.Busi/QueryPrepared_404");
+        await msg.Submit();
+
+        var trans = await ITTestHelper.GetTran(gid);
+        Assert.Equal("succeed", trans.Transaction.Status);
+        Assert.Equal(30, trans.Transaction.RequestTimeout);
+    }
+    
+    
+    [Fact]
+    public async Task SetTimeoutToFail_default()
+    {
+        var provider = ITTestHelper.AddDtmHttp();
+        var transFactory = provider.GetRequiredService<Dtmcli.IDtmTransFactory>();
+
+        var gid = "msgTestGid" + Guid.NewGuid().ToString();
+        var msg = transFactory.NewMsg(gid);
+        // msg.SetTimeoutToFail(30);
+        msg.EnableWaitResult();
+        var req = ITTestHelper.GenBusiReq(false, false);
+        var busiUrl = ITTestHelper.BuisHttpUrl;
+        msg.Add(busiUrl + "/busi.Busi/TransOut", req)
+            .Add(busiUrl + "/busi.Busi/TransIn", req);
+
+        await msg.Prepare(busiUrl + "/busi.Busi/QueryPrepared_404");
+        await msg.Submit();
+
+        var trans = await ITTestHelper.GetTran(gid);
+        Assert.Equal("succeed", trans.Transaction.Status);
+        Assert.Equal(0, trans.Transaction.RequestTimeout);
+    }
+
+    [Fact]
+    public async Task SetTimeoutToFail_30s()
+    {
+        var provider = ITTestHelper.AddDtmHttp();
+        var transFactory = provider.GetRequiredService<Dtmcli.IDtmTransFactory>();
+
+        var gid = "msgTestGid" + Guid.NewGuid().ToString();
+        var msg = transFactory.NewMsg(gid);
+        msg.SetTimeoutToFail(30);
+        msg.EnableWaitResult();
+        var req = ITTestHelper.GenBusiReq(false, false);
+        var busiUrl = ITTestHelper.BuisHttpUrl;
+        msg.Add(busiUrl + "/busi.Busi/TransOut", req)
+            .Add(busiUrl + "/busi.Busi/TransIn", req);
+
+        await msg.Prepare(busiUrl + "/busi.Busi/QueryPrepared_404");
+        await msg.Submit();
+
+        var trans = await ITTestHelper.GetTran(gid);
+        Assert.Equal("succeed", trans.Transaction.Status);
+        Assert.Equal(30, trans.Transaction.TimeoutToFail);
+    }
 }
